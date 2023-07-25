@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,9 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using Stripe;
 
-namespace StripeExample
+namespace HyperswitchExample
 {
   public class Program
   {
@@ -33,42 +32,52 @@ namespace StripeExample
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-      // This is your test secret API key.
-      StripeConfiguration.ApiKey = "sk_test_51N5PwhILTPnTByr2qLZUOL3M8d96cT3V7PQIIUApm6vGbVeJJ07kR6396e6EtUXTtV9nqbA7m7UFNkwJv59BhHG700LH0fhUeC";
-
       if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
       app.UseRouting();
       app.UseStaticFiles();
       app.UseEndpoints(endpoints => endpoints.MapControllers());
     }
+
   }
 
-  [Route("create-payment-intent")]
+  [Route("create-payment")]
   [ApiController]
   public class PaymentIntentApiController : Controller
   {
-    [HttpPost]
-    public ActionResult Create(PaymentIntentCreateRequest request)
-    {
-      var paymentIntentService = new PaymentIntentService();
-      var paymentIntent = paymentIntentService.Create(new PaymentIntentCreateOptions
-      {
-        Amount = CalculateOrderAmount(request.Items),
-        Currency = "usd",
-        AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
-        {
-          Enabled = true,
-        },
-      });
 
-      return Json(new { clientSecret = paymentIntent.ClientSecret });
+    [HttpPost]
+    public async Task<ActionResult> CreateAsync(PaymentIntentCreateRequest request)
+    {
+        string HYPER_SWITCH_API_KEY = "HYPERSWITCH_API_KEY";
+        string HYPER_SWITCH_API_BASE_URL = "https://sandbox.hyperswitch.io/payments";
+
+        var payload = new { amount = CalculateOrderAmount(request.Items), currency = "USD" };
+
+        using (var httpClient = new System.Net.Http.HttpClient())
+        {
+            httpClient.DefaultRequestHeaders.Add("api-key", HYPER_SWITCH_API_KEY);
+
+            var jsonPayload = JsonConvert.SerializeObject(payload);
+
+            var content = new System.Net.Http.StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync(HYPER_SWITCH_API_BASE_URL, content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (response.IsSuccessStatusCode)
+            {
+                dynamic responseData = JsonConvert.DeserializeObject(responseContent);
+                return Json(new {client_secret = responseData.client_secret});
+            }
+            else
+            {
+                return Json(new {error = "Request failed"});
+            }
+        }
     }
 
     private int CalculateOrderAmount(Item[] items)
     {
-      // Replace this constant with a calculation of the order's amount
-      // Calculate the order total on the server to prevent
-      // people from directly manipulating the amount on the client
       return 1400;
     }
 

@@ -17,4 +17,4 @@ dotnet restore
 dotnet run
 ~~~
 
-3. Go to [http://localhost:4242/checkout.html](http://localhost:4242/checkout.html)
+3. Go to [http://localhost:4242/index.html](http://localhost:4242/index.html)
