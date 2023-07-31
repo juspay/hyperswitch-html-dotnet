@@ -51,6 +51,13 @@ namespace HyperswitchExample
         string HYPER_SWITCH_API_KEY = "HYPERSWITCH_API_KEY";
         string HYPER_SWITCH_API_BASE_URL = "https://sandbox.hyperswitch.io/payments";
 
+        /*
+          If you have two or more “business_country” + “business_label” pairs configured in your Hyperswitch dashboard,
+          please pass the fields business_country and business_label in this request body.
+          For accessing more features, you can check out the request body schema for payments-create API here :
+          https://api-reference.hyperswitch.io/docs/hyperswitch-api-reference/60bae82472db8-payments-create
+        */
+
         var payload = new { amount = CalculateOrderAmount(request.Items), currency = "USD" };
 
         using (var httpClient = new System.Net.Http.HttpClient())
