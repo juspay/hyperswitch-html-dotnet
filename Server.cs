@@ -58,7 +58,7 @@ namespace HyperswitchExample
           https://api-reference.hyperswitch.io/docs/hyperswitch-api-reference/60bae82472db8-payments-create
         */
 
-        var payload = new { amount = CalculateOrderAmount(request.Items), currency = "USD" };
+        var payload = new { amount = CalculateOrderAmount(request.Items), currency = "USD", customer_id = "hyperswitch_customer" };
 
         using (var httpClient = new System.Net.Http.HttpClient())
         {
